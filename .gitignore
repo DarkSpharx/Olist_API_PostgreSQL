@@ -1,1 +1,10 @@
-/api_olist/.venv
+# Script d'activation venv Windows
+venv.bat
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
