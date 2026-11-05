@@ -55,16 +55,16 @@ def ventes_mensuelles(debut: str | None = None, fin: str | None = None) -> list[
     if debut is not None:
         v = v[v["mois"] >= debut]
     if fin is not None:
-        v = v[...]
+        v = v[v["mois"] <= fin]
 
     # 2. Regrouper par mois : CA = somme de montant ; commandes = nombre de order_id DISTINCTS
     m = (v.groupby("mois")
-          .agg(ca=("montant", ...), nb_commandes=("order_id", ...))
+          .agg(ca=("montant", "sum"), nb_commandes=("order_id", "nunique"))
           .reset_index()
           .sort_values("mois"))
 
     # 3. Convertir en liste de dictionnaires aux types Python simples (str, float, int)
-    return [{"mois": r.mois, "ca": round(float(r.ca), 2), "nb_commandes": int(...)}
+    return [{"mois": r.mois, "ca": round(float(r.ca), 2), "nb_commandes": int(r.nb_commandes)}
             for r in m.itertuples()]
 
 
@@ -73,13 +73,13 @@ def top_categories(n: int = 10) -> list[dict]:
     v = charger()
 
     # 1. CA total, pour calculer les parts
-    total = ...
+    total = float(v["montant"].sum())
 
     # 2. CA par catégorie, trié du plus grand au plus petit, puis les n premiers
-    cat = v.groupby("categorie")["montant"].sum().sort_values(ascending=...).head(...)
+    cat = v.groupby("categorie")["montant"].sum().sort_values(ascending=False).head(n)
 
     # 3. Une liste de dictionnaires : categorie, ca (arrondi à 2), part_ca (en %, arrondi à 2)
-    return [{"categorie": nom, "ca": ..., "part_ca": ...}
+    return [{"categorie": nom, "ca": round(float(ca), 2), "part_ca": round(float(ca) / total * 100, 2)}
             for nom, ca in cat.items()]
 
 
@@ -88,17 +88,18 @@ def etat(code: str) -> dict | None:
     v = charger()
 
     # 1. Garder les lignes de l'État demandé
-    e = v[v["customer_state"] == ...]
+    e = v[v["customer_state"] == code]
 
     # 2. Aucune ligne → renvoyer None (main.py transformera ce None en erreur 404)
     if e.empty:
-        return ...
+        return None
 
     # 3. Calculer et renvoyer les 4 champs
     ca = float(e["montant"].sum())
+    part_ca = ca / float(v["montant"].sum()) * 100  # part du CA total, en %, arrondie à 2 décimales
     return {
         "etat": code,
-        "ca": ...,
-        "nb_commandes": ...,
-        "part_ca": ...,  # part du CA total, en %, arrondie à 2 décimales
+        "ca": round(ca, 2),
+        "nb_commandes": e["order_id"].nunique(),
+        "part_ca": round(part_ca, 2),  # part du CA total, en %, arrondie à 2 décimales
     }

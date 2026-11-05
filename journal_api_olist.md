@@ -1,8 +1,8 @@
 # Journal de l'API Olist — FastAPI
 
-**Nom :** …
-**Dates :** J1 … · J2 …
-**Fichier rendu :** api_olist_….zip
+**Nom :** Frédéric Arnould
+**Dates :** J1 05/11/2026 · J2 06/11/2026
+**Fichier rendu :** api_olist_Frederic_ARNOULD.zip
 
 > Compétences : WCS C1.6 · C2.4 · C2.1 · C2.5 (niveau 2 · Adapter) — Simplon C6 · C7 (partiel)
 > Remplis les parties **dans l'ordre**. Remplace chaque « … ». Une phrase suffit sauf mention contraire.
@@ -20,84 +20,126 @@
 <a id="j-m1"></a>
 ## M1 — Lancer l'API et la tester
 
-- Version de Python : …
-- Commande de lancement que j'ai utilisée : …
-- Code et `nb_lignes` renvoyés par `/sante` : …
-- Différence entre `/docs` et `/sante` ouverts dans le navigateur : …
-- Problème rencontré et solution (ou « aucun ») : …
+- Version de Python : Python 3.14.7
+- Commande de lancement que j'ai utilisée : py -m uvicorn main:app --reload
+- Code et `nb_lignes` renvoyés par `/sante` : code 200, {"statut":"ok","source":"csv","nb_lignes":110197}
+- Différence entre `/docs` et `/sante` ouverts dans le navigateur : /docs est une interface graphique (Swagger) générée automatiquement par FastAPI pour tester les routes. /sante est une route API qui renvoie un JSON confirmant que l'API tourne.
+- Problème rencontré et solution (ou « aucun ») : comprendre les consignes et ou/quand répondre aux questions
 
 <a id="j-m2"></a>
 ## M2 — Lire une route complète
 
 ### Le trajet d'une requête `GET /indicateurs`, en 4 étapes
 
-1. Le navigateur envoie … à l'adresse …
-2. FastAPI exécute la fonction … du fichier …, qui appelle …
-3. Cette fonction lit … et renvoie …
-4. Le modèle … vérifie … puis FastAPI renvoie … avec le code …
+1. Le navigateur envoie une requête `GET` à l'adresse http://127.0.0.1:8000/indicateurs
+2. FastAPI exécute la fonction indicateurs() du fichier main.py, qui appelle  `indicateurs()` de `donnees_csv.py`
+3. Cette fonction lit `data/ventes_olist.csv` et renvoie un dictionnaire `{"nb_lignes": len(v),"nb_commandes": nb_commandes,"ca_total": round(ca_total, 2),"panier_moyen": round(ca_total / nb_commandes, 2),}`
+4. Le modèle `class Indicateurs(BaseModel)` vérifie les champs et leurs types puis FastAPI renvoie un `JSON` avec le code `200`
 
 ### L'expérience du contrat
 
-- Quand j'ai mis `panier_moyen` en commentaire dans le modèle, la réponse … .
-- Conclusion : …
+- Quand j'ai mis `panier_moyen` en commentaire dans le modèle, la réponse ne contient plus le champ `panier_moyen`.
+- Conclusion : le modèle décide de ce qui sort, même si la fonction de données renvoie plus.
 
 ### Pourquoi deux fichiers (`main.py` et `donnees_csv.py`) ?
 
-- …
+- `donnees_csv.py` **calcule** et ne sait rien du web. `main.py` **expose** et ne sait rien du calcul. Demain, tu remplaceras `donnees_csv.py` par `donnees_pg.py`, et `main.py` ne changera presque pas. C'est ce qu'on appelle un code **organisé**
 
 ### Comparaison avec lundi
 
-- `nb_commandes` : … (lundi : 96 478)
-- `ca_total` : … (lundi : 15 424 463,65)
+- `nb_commandes` : 96478 (lundi : 96 478)
+- `ca_total` : 15424463.65 (lundi : 15 424 463,65)
 
 <a id="j-m3"></a>
 ## M3 — Ventes mensuelles
 
 ### Tests
 
-- Sans paramètre : … mois, du … au …
-- `debut=2017-01` et `fin=2017-12` : … mois ; novembre 2017 = … R$ et … commandes
-- `debut=2018-02` et `fin=2017-01` : code … , message …
-- `debut=2017-13` : code …
+- Sans paramètre : `23` mois, du `2016-09` au `2018-08`
+- `debut=2017-01` et `fin=2017-12` : 12 mois ; novembre 2017 = `1154559.53` R$ et `7289` commandes
+- `debut=2018-02` et `fin=2017-01` : code `400` , message `{"detail":"« debut » doit être antérieur ou égal à « fin »."}`
+- `debut=2017-13` : code `422`
 
 ### Questions
 
-1. Différence entre un paramètre de chemin et un paramètre de requête, avec un exemple de cette API : …
-2. Qui renvoie le code 400 (toi ou FastAPI) ? Et le code 422 ? Pourquoi cette différence ? …
+1. Différence entre un paramètre de chemin et un paramètre de requête, avec un exemple de cette API : **Un paramètre de chemin fait partie de l’URL, par exemple `SP` dans `/etats/SP`. Un paramètre de requête suit le `?` et précise la demande, par exemple `debut=2017-01` dans `/ventes/mensuelles?debut=2017-01`.**
+2. Qui renvoie le code 400 (toi ou FastAPI) ? Et le code 422 ? Pourquoi cette différence ? **Le code 400 est renvoyé par notre code quand la période est incohérente, par exemple si `debut` est après `fin`. Le code 422 est renvoyé automatiquement par FastAPI si un paramètre ne respecte pas le format déclaré, comme `debut=2017-13`.**
 
 <a id="j-m4"></a>
 ## M4 — Top catégories
 
 ### Tests
 
-- Sans paramètre : … catégories ; la première est … avec … %
-- Somme des 10 parts : … %
-- `n=3` : …
-- `n=0` : code … · `n=51` : code …
+- Sans paramètre : `10` catégories ; la première est `health_beauty` avec `9.16 %`
+- Somme des 10 parts : `62.32 %`
+- `n=3` : `25.3 %`
+- `n=0` : code `422` · `n=51` : code `422`
 
 ### Question
 
-- Que reçoit Rafael s'il n'envoie pas `n` ? Où est-ce décidé dans le code ? …
+- Que reçoit Rafael s'il n'envoie pas `n` ? Où est-ce décidé dans le code ? S'il n'envoie pas de valeur pour `n`, il reçoit les 10 catégories au plus fort chiffre d'affaires. La valeur par défaut `10` est définie dans `main.py`, dans le paramètre `Query(10, ...)` de la route `/categories/top`.
 
+```python
+def top_categories(n: int = Query(10, ge=1, le=50, description="Nombre de catégories (1 à 50)")):
+    """Les n catégories au plus fort chiffre d'affaires."""
+    return donnees.top_categories(n)`
+```
 <a id="j-m5"></a>
 ## M5 — Chiffres d'un État
 
 ### Mon modèle `Etat` (copie le code)
 
+- Dans `main.py`
 ```python
-…
+class Etat(BaseModel):
+    etat: str
+    ca: float
+    nb_commandes: int
+    part_ca: float
+
+@app.get("/etats/{code_etat}", response_model=Etat, tags=["Indicateurs"])
+def etat(code_etat: str = Path(pattern=r"^[A-Za-z]{2}$", description="Code de l'État sur 2 lettres, ex. SP")):
+    """Chiffres d'un État brésilien."""
+    code = code_etat.upper()          # « sp » et « SP » donnent le même résultat
+    resultat = donnees.etat(code)
+    if resultat is None:
+        raise HTTPException(status_code=404, detail=f"Aucune vente pour l'État « {code} ».")
+    return resultat
+```
+- Dans `donnees_csv.py`
+```python
+def etat(code: str) -> dict | None:
+    """Mission 5 — chiffres d'un État brésilien (ex. « SP ») ; None s'il n'a aucune vente."""
+    v = charger()
+
+    # 1. Garder les lignes de l'État demandé
+    e = v[v["customer_state"] == code]
+
+    # 2. Aucune ligne → renvoyer None (main.py transformera ce None en erreur 404)
+    if e.empty:
+        return None
+
+    # 3. Calculer et renvoyer les 4 champs
+    ca = float(e["montant"].sum())
+    part_ca = ca / float(v["montant"].sum()) * 100  # part du CA total, en %, arrondie à 2 décimales
+    return {
+        "etat": code,
+        "ca": round(ca, 2),
+        "nb_commandes": e["order_id"].nunique(),
+        "part_ca": round(part_ca, 2),  # part du CA total, en %, arrondie à 2 décimales
+    }
 ```
 
 ### Tests
 
-- `/etats/SP` : CA … , commandes … , part … %
-- `/etats/sp` : identique (oui / non) : …
-- `/etats/XX` : code … , message …
-- `/etats/SPX` : code …
+- `/etats/SP` : CA `5771713.93` , commandes `40501` , part `37.42` %
+- `/etats/sp` : identique (oui / non) : oui
+- `/etats/XX` : code `404` , message `"Aucune vente pour l'État « XX »."`
+- `/etats/SPX` : code `422`
 
 ### Question
 
-- Pourquoi un État sans vente renvoie 404 et pas une réponse vide avec le code 200 ? …
+- Pourquoi un État sans vente renvoie 404 et pas une réponse vide avec le code 200 ? **Parce qu’un État sans vente est considéré comme une ressource inexistante. Le code 404 l’indique clairement, alors qu’un 200 avec une réponse vide signifierait que la requête a réussi.**
 
 <a id="j-m6"></a>
 ## M6 — Recette complète dans /docs
