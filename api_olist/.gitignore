@@ -1,5 +1,6 @@
 # Secrets
 .env
+.env.exemple
 # Données (licence CC BY-NC-SA, fichiers volumineux)
 data/
 *.csv

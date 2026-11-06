@@ -65,9 +65,9 @@ def ventes_mensuelles(debut: str | None = None, fin: str | None = None) -> list[
                count(DISTINCT order_id) AS nb_commandes
         FROM analytique.ventes
         WHERE (%(debut)s::text IS NULL OR mois >= %(debut)s)
-          AND (...)
-        GROUP BY ...
-        ORDER BY ...
+          AND (%(fin)s::text IS NULL OR mois <= %(fin)s)
+        GROUP BY mois
+        ORDER BY mois
     """, {"debut": debut, "fin": fin})
 
 
@@ -78,9 +78,9 @@ def top_categories(n: int = 10) -> list[dict]:
                round(sum(montant), 2) AS ca,
                round(100 * sum(montant) / (SELECT sum(montant) FROM analytique.ventes), 2) AS part_ca
         FROM analytique.ventes
-        GROUP BY ...
-        ORDER BY ...
-        LIMIT ...
+        GROUP BY categorie
+        ORDER BY ca DESC
+        LIMIT %(n)s
     """, {"n": n})
 
 
@@ -90,11 +90,11 @@ def etat(code: str) -> dict | None:
         SELECT %(code)s::text            AS etat,
                round(sum(montant), 2)    AS ca,
                count(DISTINCT order_id)  AS nb_commandes,
-               ...                       AS part_ca
+               round(100 * sum(montant) / (SELECT sum(montant) FROM analytique.ventes), 2) AS part_ca
         FROM analytique.ventes
-        WHERE ...
+        WHERE customer_state = %(code)s
     """, {"code": code})[0]
     # Sans aucune vente, la requête renvoie quand même UNE ligne, avec nb_commandes = 0
     if ligne["nb_commandes"] == 0:
-        return ...
+        return None
     return ligne
