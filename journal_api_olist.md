@@ -801,25 +801,25 @@ LIMIT 10;
 
 ### Sécurité
 
-- Pourquoi `%(code)s` plutôt qu'une f-string ? Donne l'exemple d'une valeur dangereuse. Pour éviter l'injection SQL : avec une f-string, la valeur `SP' OR '1'='1` pourrait modifier la requête et lui faire renvoyer toutes les ventes. Avec `%(code)s`, psycopg transmet la valeur séparément.
+- Pourquoi `%(code)s` plutôt qu'une f-string ? Donne l'exemple d'une valeur dangereuse. Pour éviter l'injection SQL : Avec une f-string, la valeur `SP' OR '1'='1` pourrait modifier la requête et lui faire renvoyer toutes les ventes. Avec `%(code)s`, psycopg transmet la valeur séparément.
 - Pourquoi faire calculer PostgreSQL plutôt que Python ? Pour ne pas rapatrier les 110 197 lignes dans Python : PostgreSQL fait le calcul et renvoie seulement les résultats, par exemple 12 lignes ou une ligne.
 
 <a id="j-m10"></a>
 ## M10 — Basculer l'API sur PostgreSQL
 
-- `/sante` après la bascule : source … , lignes …
-- Pourquoi il faut relancer l'API après avoir modifié `.env` : …
-- Test de panne (`PGPORT=5999`) : code … , message …
-- Ce qu'aurait vu Rafael sans le gestionnaire d'erreur `SourceIndisponible` : …
-- Ce que Rafael a dû changer dans son code pour la bascule : …
+- `/sante` après la bascule : source **postgresql**, lignes **110197**
+- Pourquoi il faut relancer l'API après avoir modifié `.env` : Parce que la variable d'environnement `SOURCE_DONNEES` est lue au démarrage ; `--reload` ne surveille que les fichiers `.py`.
+- Test de panne (`PGPORT=5999`) : code **503**, message **{"detail":"Base PostgreSQL injoignable"}**
+- Ce qu'aurait vu Rafael sans le gestionnaire d'erreur `SourceIndisponible` : une erreur **500 Internal Server Error** au lieu d'une réponse claire indiquant que la base est indisponible.
+- Ce que Rafael a dû changer dans son code pour la bascule : Les adresses, les paramètres et le format des réponses restent les mêmes. Les imports changent dans `main.py`, côté serveur, pour choisir entre les sources CSV et PostgreSQL.
 
 <a id="j-m11"></a>
 ## M11 — Écrire le client de Rafael
 
-- Bilan affiché par `client.py` : … / 10
-- Nombre de lignes de `ca_mensuel_2017.csv`, en-tête compris : …
-- Différence entre `.status_code` et `.json()` : …
-- Utilité du paramètre `timeout` : …
+- Bilan affiché par `client.py` : 10 / 10
+- Nombre de lignes de `ca_mensuel_2017.csv`, en-tête compris : **13 lignes**
+- Différence entre `.status_code` et `.json()` : `.status_code` donne le code de statut HTTP de la réponse (par exemple `200` pour une requête réussie ou `404` si la ressource est introuvable) ; `.json()` transforme le contenu de la réponse en dictionnaire ou en liste Python.
+- Utilité du paramètre `timeout` : `timeout=10` évite que le script attende sans fin.
 
 <a id="j-m12"></a>
 ## M12 — README et rendu
