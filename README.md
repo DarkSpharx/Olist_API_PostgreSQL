@@ -29,24 +29,16 @@ py -m pip install -r requirements.txt
 
 ## Configuration
 
-1. Copier `.env.exemple` sous le nom `.env` dans le dossier `api_olist` :
-   ```bash
-   cp .env.exemple .env
-   ```
-2. Dans DBeaver, se connecter à PostgreSQL avec le compte `postgres`.
-3. Créer la base `olist` si elle n'existe pas.
-4. Dans le navigateur de bases, faire un clic droit sur la base `olist` elle-même, puis choisir **Outils > Exécuter le script**.
-5. Dans la fenêtre **Script PostgreSQL**, cliquer sur l'icône de dossier à côté de **Input**.
-6. Sélectionner `api_olist/olist_ventes.sql`, puis cliquer sur **Ouvrir**.
-7. Cliquer sur **Démarrage** pour lancer le script.
-8. Vérifier que le résultat final affiche `110197` lignes, `96478` commandes et `15424463.65` de chiffre d'affaires.
-9. Dans DBeaver, configurer une connexion PostgreSQL avec `localhost`, le port `5432`, la base `olist` et l'utilisateur `lecteur_olist`. Laisser **Show all databases** décoché, saisir le mot de passe de ce compte, puis tester la connexion.
-10. Dans `.env`, indiquer `SOURCE_DONNEES=postgresql` et renseigner `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` et `PGPASSWORD` avec ces mêmes paramètres.
-11. Ne pas partager `.env` : il contient des identifiants et est ignoré par Git.
+1. Depuis le dossier `api_olist`, copier `.env.exemple` sous le nom `.env`.
+2. Dans DBeaver, créer ou ouvrir une connexion PostgreSQL avec le compte `postgres`. Pour cette connexion, renseigner `localhost`, le port `5432` et la base `postgres`, puis cocher **Show all databases**.
+3. Dans le navigateur de connexions, développer cette connexion. Faire un clic droit sur **Bases de données**, choisir **Créer > Base de données**, puis saisir `olist`.
+4. Dans le navigateur, faire un clic droit sur la base `olist`, puis choisir **Outils > Exécuter le script**.
+5. Dans la fenêtre **Script PostgreSQL**, cliquer sur l'icône de dossier à côté de **Input**. Sélectionner `olist_ventes.sql`, puis cliquer sur **Ouvrir**.
+6. Cliquer sur **Démarrage** pour exécuter le script. Vérifier que le résultat indique `110197` lignes, `96478` commandes et `15424463.65` de chiffre d'affaires.
+7. Créer une connexion PostgreSQL dédiée à la base `olist` : hôte `localhost`, port `5432`, base `olist`, utilisateur `lecteur_olist` et mot de passe de ce compte. Décocher **Show all databases**, puis tester la connexion.
+8. Dans `.env`, indiquer `SOURCE_DONNEES=postgresql` et reprendre les mêmes paramètres dans `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` et `PGPASSWORD`.
+9. Ne pas partager `.env` : il contient le mot de passe et doit rester ignoré par Git.
 
-Le script supprime puis recrée le schéma `analytique` dans la base sélectionnée. Il crée le compte `lecteur_olist` s'il n'existe pas et lui accorde les droits de lecture sur `olist`.
-
-Le fichier `.env.exemple` donne les noms des variables à renseigner. `PGPASSWORD` correspond au mot de passe du compte de lecture défini lors de la création initiale du compte. Si ce compte existe déjà, conserver son mot de passe actuel.
 
 ## Lancement
 

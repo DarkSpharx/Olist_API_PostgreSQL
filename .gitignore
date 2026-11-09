@@ -8,3 +8,4 @@ venv.bat
 # OS
 .DS_Store
 Thumbs.db
+/README copy.md
